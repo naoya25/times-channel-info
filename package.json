@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "check": "tsc --noEmit",
+    "build": "tsc && cp src/appsscript.json dist/",
     "push": "clasp push",
-    "deploy": "npm run check && npm run push",
+    "deploy": "npm run check && npm run build && npm run push",
     "open": "clasp open"
   },
   "keywords": [],
