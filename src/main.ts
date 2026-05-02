@@ -1,4 +1,4 @@
-function main() {
+function main(): void {
   fetchSlackUsers();
   const newChannels = fetchTimesChannels();
 
@@ -15,7 +15,7 @@ function main() {
 
   newChannels.forEach((ch) => {
     const creatorName = ch.creator
-      ? userMap[ch.creator] || "anonymous"
+      ? (userMap[ch.creator] ?? "anonymous")
       : "anonymous";
     msg += `<#${ch.id}> creator: ${creatorName}\n`;
   });
@@ -25,6 +25,6 @@ function main() {
     postToSlack(targetChannel, msg);
     console.log(`${newChannels.length}件の新着timesを通知しました。`);
   } catch (e) {
-    console.error("Slack通知でエラーが発生しました: " + e.msg);
+    console.error("Slack通知でエラーが発生しました: " + (e as Error).message);
   }
 }

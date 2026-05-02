@@ -1,7 +1,7 @@
-function postToSlack(chId, text) {
+function postToSlack(chId: string, text: string): SlackPostMessageResponse {
   const token = PropertiesService.getScriptProperties().getProperty(
     "SLACK_BOT_TOKEN_dev",
-  ); // FIXME: dev用トークン
+  ); // FIXME: デバッグ用
   if (!token) throw new Error("SLACK_BOT_TOKEN が未設定です");
 
   const response = UrlFetchApp.fetch("https://slack.com/api/chat.postMessage", {
@@ -17,7 +17,9 @@ function postToSlack(chId, text) {
     muteHttpExceptions: true,
   });
 
-  const result = JSON.parse(response.getContentText());
+  const result = JSON.parse(
+    response.getContentText(),
+  ) as SlackPostMessageResponse;
   if (!result.ok) {
     throw new Error(response.getContentText());
   }

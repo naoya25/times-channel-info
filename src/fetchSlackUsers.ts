@@ -1,13 +1,14 @@
-function fetchSlackUsers() {
+function fetchSlackUsers(): void {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const config = fetchConfigs();
   const token =
     PropertiesService.getScriptProperties().getProperty("SLACK_BOT_TOKEN");
 
-  const excludeBots = config["EXCLUDE_BOTS"];
-  const excludeDeleted = config["EXCLUDE_DELETED_USERS"];
-  const excludeRestricted = config["EXCLUDE_RESTRICTED_USERS"];
-  const excludeUltraRestricted = config["EXCLUDE_ULTRA_RESTRICTED_USERS"];
+  const excludeBots = config["EXCLUDE_BOTS"] === "true";
+  const excludeDeleted = config["EXCLUDE_DELETED_USERS"] === "true";
+  const excludeRestricted = config["EXCLUDE_RESTRICTED_USERS"] === "true";
+  const excludeUltraRestricted =
+    config["EXCLUDE_ULTRA_RESTRICTED_USERS"] === "true";
 
   // ===== シート準備 =====
   let sheet = ss.getSheetByName(config["USERS_SHEET_NAME"]);
@@ -16,7 +17,7 @@ function fetchSlackUsers() {
 
   // ===== ユーザ取得（ページング） =====
   let cursor = "";
-  const allUsers = [];
+  const allUsers: SlackUser[] = [];
 
   do {
     const url = buildUrl_("https://slack.com/api/users.list", {
@@ -24,16 +25,16 @@ function fetchSlackUsers() {
       cursor: cursor,
     });
 
-    const json = slackFetchWithRetry(url, token);
+    const json = slackFetchWithRetry<SlackUsersResponse>(url, token!);
 
     allUsers.push(...json.members);
-    cursor = json.response_metadata?.next_cursor || "";
+    cursor = json.response_metadata?.next_cursor ?? "";
 
     Utilities.sleep(300); // 軽いレート制限対策
   } while (cursor);
 
   // ===== 出力 =====
-  const output = [
+  const output: (string | boolean)[][] = [
     ["id", "name", "real_name", "display_name", "is_bot", "deleted"],
   ];
 
@@ -46,8 +47,8 @@ function fetchSlackUsers() {
     output.push([
       user.id,
       user.name,
-      user.real_name || "",
-      user.profile?.display_name || "",
+      user.real_name ?? "",
+      user.profile?.display_name ?? "",
       user.is_bot,
       user.deleted,
     ]);

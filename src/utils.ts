@@ -1,18 +1,21 @@
-function buildUrl_(base, params) {
+type UrlParams = Record<string, string | number | boolean | undefined | null>;
+
+function buildUrl_(base: string, params: UrlParams): string {
   const query = Object.keys(params)
     .filter(
       (key) =>
         params[key] !== "" && params[key] !== null && params[key] !== undefined,
     )
     .map(
-      (key) => encodeURIComponent(key) + "=" + encodeURIComponent(params[key]),
+      (key) =>
+        encodeURIComponent(key) + "=" + encodeURIComponent(String(params[key])),
     )
     .join("&");
 
   return query ? base + "?" + query : base;
 }
 
-function parseRegex(str) {
+function parseRegex(str: string): RegExp {
   const match = str.match(/^\/(.+)\/([a-z]*)$/i);
   if (!match) {
     throw new Error("Invalid regex: " + str);
@@ -20,7 +23,10 @@ function parseRegex(str) {
   return new RegExp(match[1], match[2]);
 }
 
-function slackFetchWithRetry(url, token) {
+function slackFetchWithRetry<T extends { ok: boolean; error?: string }>(
+  url: string,
+  token: string,
+): T {
   while (true) {
     const res = UrlFetchApp.fetch(url, {
       method: "get",
@@ -29,12 +35,13 @@ function slackFetchWithRetry(url, token) {
     });
 
     if (res.getResponseCode() === 429) {
-      const retryAfter = Number(res.getHeaders()["Retry-After"] || 5);
+      const headers = res.getHeaders() as Record<string, string>;
+      const retryAfter = Number(headers["Retry-After"] ?? 5);
       Utilities.sleep(retryAfter * 1000);
       continue;
     }
 
-    const json = JSON.parse(res.getContentText());
+    const json = JSON.parse(res.getContentText()) as T;
 
     if (!json.ok) {
       throw new Error(json.error);
@@ -44,22 +51,21 @@ function slackFetchWithRetry(url, token) {
   }
 }
 
-function getUserMap() {
+function getUserMap(): Record<string, string> {
   const config = fetchConfigs();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(config["USERS_SHEET_NAME"]);
-  const userMap = {};
+  const userMap: Record<string, string> = {};
 
   if (!sheet) return userMap;
 
-  // データのある範囲を一括取得
-  const data = sheet.getDataRange().getValues();
+  const data = sheet.getDataRange().getValues() as string[][];
 
   // 1行目はヘッダー想定なので i = 1 からスタート
   for (let i = 1; i < data.length; i++) {
-    const id = data[i][0]; // A列: ID
-    const name = data[i][1]; // B列: real_name など
-    const displayName = data[i][2]; // C列: display_name など
+    const id = data[i][0];
+    const name = data[i][1];
+    const displayName = data[i][2];
 
     if (id) {
       // display_name があれば優先し、なければ name、どちらも無ければ "anonymous"

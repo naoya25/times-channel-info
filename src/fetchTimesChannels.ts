@@ -1,4 +1,4 @@
-function fetchTimesChannels() {
+function fetchTimesChannels(): SlackChannel[] {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const config = fetchConfigs();
 
@@ -12,14 +12,14 @@ function fetchTimesChannels() {
   }
 
   // ===== 1. 既存データの取得（差分比較用） =====
-  let existingChannelIds = [];
+  let existingChannelIds: string[] = [];
   const lastRow = sheet.getLastRow();
 
   // 見出し行(1行目)より下にデータがある場合のみIDを取得
   if (lastRow > 1) {
-    existingChannelIds = sheet
+    existingChannelIds = (sheet
       .getRange(2, 1, lastRow - 1, 1)
-      .getValues()
+      .getValues() as string[][])
       .flat();
   }
 
@@ -28,7 +28,7 @@ function fetchTimesChannels() {
 
   // ===== 2. チャンネル取得（ページング） =====
   let cursor = "";
-  const allChannels = [];
+  const allChannels: SlackChannel[] = [];
 
   do {
     const url = buildUrl_("https://slack.com/api/conversations.list", {
@@ -38,9 +38,9 @@ function fetchTimesChannels() {
       cursor: cursor,
     });
 
-    const json = slackFetchWithRetry(url, token);
+    const json = slackFetchWithRetry<SlackConversationsResponse>(url, token!);
     allChannels.push(...json.channels);
-    cursor = json.response_metadata?.next_cursor || "";
+    cursor = json.response_metadata?.next_cursor ?? "";
   } while (cursor);
 
   // ===== 3. timesチャンネル抽出 =====
@@ -50,13 +50,12 @@ function fetchTimesChannels() {
   });
 
   // ===== 4. 差分の抽出 =====
-  // 最新のtimesの中から、既存IDリストに含まれていないものを抽出
   const newChannels = timesChannels.filter(
     (ch) => !existingChannelIds.includes(ch.id),
   );
 
   // ===== 5. データ整形と書き込み =====
-  const output = [
+  const output: (string | number | Date)[][] = [
     ["channel_id", "channel_name", "creator", "created", "num_members"],
   ];
 
@@ -64,9 +63,9 @@ function fetchTimesChannels() {
     output.push([
       ch.id,
       ch.name,
-      ch.creator || "",
+      ch.creator ?? "",
       ch.created ? new Date(ch.created * 1000) : "",
-      ch.num_members || "",
+      ch.num_members ?? "",
     ]);
   });
 
