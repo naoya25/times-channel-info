@@ -1,6 +1,7 @@
 function postToSlack(chId, text) {
-  const token =
-    PropertiesService.getScriptProperties().getProperty("SLACK_BOT_TOKEN");
+  const token = PropertiesService.getScriptProperties().getProperty(
+    "SLACK_BOT_TOKEN_dev",
+  ); // FIXME: dev用トークン
   if (!token) throw new Error("SLACK_BOT_TOKEN が未設定です");
 
   const response = UrlFetchApp.fetch("https://slack.com/api/chat.postMessage", {

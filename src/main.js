@@ -8,7 +8,7 @@ function main() {
     return;
   }
 
-  const targetChannel = "C0B237J1X6U";
+  const targetChannel = config["NEWS_CHANNEL_ID"];
   let msg = "🎉 *新しい times チャンネルが誕生しました！* 🎉\n";
   const userMap = getUserMap();
 
