@@ -1,30 +1,10 @@
-function main(): void {
-  fetchSlackUsers();
-  const newChannels = fetchTimesChannels();
-
-  // 新チャンネルを通知
-  if (!newChannels || newChannels.length === 0) {
-    console.log("新着のtimesチャンネルはありませんでした。");
-    return;
-  }
-
+function main(targetChannel: string = TARGET_CHANNEL): void {
   const config = fetchConfigs();
-  const targetChannel = config["NEWS_CHANNEL_ID"];
-  let msg = "🎉 *新しい times チャンネルが誕生しました！* 🎉\n";
-  const userMap = getUserMap();
+  const userCount = fetchSlackUsers(config);
+  const newChannels = fetchTimesChannels(config);
+  notifyNewTimesChannels(newChannels, targetChannel, config);
 
-  newChannels.forEach((ch) => {
-    const creatorName = ch.creator
-      ? (userMap[ch.creator] ?? "anonymous")
-      : "anonymous";
-    msg += `<#${ch.id}> creator: ${creatorName}\n`;
-  });
-
-  console.log(msg);
-  try {
-    postToSlack(targetChannel, msg);
-    console.log(`${newChannels.length}件の新着timesを通知しました。`);
-  } catch (e) {
-    console.error("Slack通知でエラーが発生しました: " + (e as Error).message);
-  }
+  console.log(
+    `処理完了 — ユーザー: ${userCount}人 / 新着 times: ${newChannels.length}件 / 通知先: ${targetChannel}`,
+  );
 }

@@ -1,6 +1,7 @@
-function fetchSlackUsers(): void {
+function fetchSlackUsers(config: Record<string, string>): number {
+  console.log("Slack ユーザーの取得を開始します...");
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const config = fetchConfigs();
   const token =
     PropertiesService.getScriptProperties().getProperty("SLACK_BOT_TOKEN");
 
@@ -10,30 +11,12 @@ function fetchSlackUsers(): void {
   const excludeUltraRestricted =
     config["EXCLUDE_ULTRA_RESTRICTED_USERS"] === "true";
 
-  // ===== シート準備 =====
   let sheet = ss.getSheetByName(config["USERS_SHEET_NAME"]);
   if (!sheet) sheet = ss.insertSheet(config["USERS_SHEET_NAME"]);
   else sheet.clear();
 
-  // ===== ユーザ取得（ページング） =====
-  let cursor = "";
-  const allUsers: SlackUser[] = [];
+  const allUsers = fetchUsersFromSlack(token!);
 
-  do {
-    const url = buildUrl_("https://slack.com/api/users.list", {
-      limit: 200,
-      cursor: cursor,
-    });
-
-    const json = slackFetchWithRetry<SlackUsersResponse>(url, token!);
-
-    allUsers.push(...json.members);
-    cursor = json.response_metadata?.next_cursor ?? "";
-
-    Utilities.sleep(300); // 軽いレート制限対策
-  } while (cursor);
-
-  // ===== 出力 =====
   const output: (string | boolean)[][] = [
     ["id", "name", "real_name", "display_name", "is_bot", "deleted"],
   ];
@@ -55,4 +38,30 @@ function fetchSlackUsers(): void {
   });
 
   sheet.getRange(1, 1, output.length, output[0].length).setValues(output);
+
+  const savedCount = output.length - 1;
+  console.log(`${savedCount}人のユーザーを取得しました。`);
+  return savedCount;
+}
+
+function getUserMap(config: Record<string, string>): Record<string, string> {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(config["USERS_SHEET_NAME"]);
+  const userMap: Record<string, string> = {};
+
+  if (!sheet) return userMap;
+
+  const data = sheet.getDataRange().getValues() as string[][];
+
+  for (let i = 1; i < data.length; i++) {
+    const id = data[i][0];
+    const name = data[i][1];
+    const displayName = data[i][2];
+
+    if (id) {
+      userMap[id] = displayName || name || "anonymous";
+    }
+  }
+
+  return userMap;
 }
