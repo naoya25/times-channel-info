@@ -1,7 +1,12 @@
 function buildUrl_(base, params) {
   const query = Object.keys(params)
-    .filter(key => params[key] !== "" && params[key] !== null && params[key] !== undefined)
-    .map(key => encodeURIComponent(key) + "=" + encodeURIComponent(params[key]))
+    .filter(
+      (key) =>
+        params[key] !== "" && params[key] !== null && params[key] !== undefined,
+    )
+    .map(
+      (key) => encodeURIComponent(key) + "=" + encodeURIComponent(params[key]),
+    )
     .join("&");
 
   return query ? base + "?" + query : base;
@@ -20,7 +25,7 @@ function slackFetchWithRetry(url, token) {
     const res = UrlFetchApp.fetch(url, {
       method: "get",
       headers: { Authorization: "Bearer " + token },
-      muteHttpExceptions: true
+      muteHttpExceptions: true,
     });
 
     if (res.getResponseCode() === 429) {
@@ -39,7 +44,6 @@ function slackFetchWithRetry(url, token) {
   }
 }
 
-
 function getUserMap() {
   const config = fetchConfigs();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -53,8 +57,8 @@ function getUserMap() {
 
   // 1行目はヘッダー想定なので i = 1 からスタート
   for (let i = 1; i < data.length; i++) {
-    const id = data[i][0];          // A列: ID
-    const name = data[i][1];        // B列: real_name など
+    const id = data[i][0]; // A列: ID
+    const name = data[i][1]; // B列: real_name など
     const displayName = data[i][2]; // C列: display_name など
 
     if (id) {
