@@ -8,6 +8,7 @@ function main() {
     return;
   }
 
+  const config = fetchConfigs();
   const targetChannel = config["NEWS_CHANNEL_ID"];
   let msg = "🎉 *新しい times チャンネルが誕生しました！* 🎉\n";
   const userMap = getUserMap();
