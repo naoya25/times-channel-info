@@ -1,0 +1,21 @@
+{
+  "name": "times-channel-info",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "push": "clasp push",
+    "deploy": "npm run check && npm run push",
+    "open": "clasp open"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@google/clasp": "^3.3.0",
+    "@types/google-apps-script": "^2.0.8",
+    "typescript": "^5.9.3"
+  }
+}
