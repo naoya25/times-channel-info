@@ -21,10 +21,6 @@ function notifyNewTimesChannels(
   });
 
   console.log(msg);
-  try {
-    postToSlack(targetChannel, msg);
-    console.log(`${newChannels.length}件の新着 times チャンネルを通知しました。`);
-  } catch (e) {
-    console.error("Slack通知でエラーが発生しました: " + (e as Error).message);
-  }
+  postToSlack(targetChannel, msg);
+  console.log(`${newChannels.length}件の新着 times チャンネルを通知しました。`);
 }

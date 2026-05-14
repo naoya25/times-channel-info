@@ -1,4 +1,7 @@
-function fetchTimesChannels(config: Record<string, string>): SlackChannel[] {
+function fetchTimesChannels(config: Record<string, string>): {
+  newChannels: SlackChannel[];
+  allTimesChannels: SlackChannel[];
+} {
   console.log("times チャンネルの取得を開始します...");
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -24,13 +27,32 @@ function fetchTimesChannels(config: Record<string, string>): SlackChannel[] {
 
   const allChannels = fetchChannelsFromSlack(token!);
 
-  const timesChannels = allChannels.filter(
+  const allTimesChannels = allChannels.filter(
     (ch) => ch.name && regex.test(ch.name),
   );
 
-  const newChannels = timesChannels.filter(
+  const newChannels = allTimesChannels.filter(
     (ch) => !existingChannelIds.includes(ch.id),
   );
+
+  console.log(
+    `${allTimesChannels.length}件の times チャンネルを取得しました。新着: ${newChannels.length}件`,
+  );
+
+  return { newChannels, allTimesChannels };
+}
+
+function updateTimesChannelsSheet(
+  config: Record<string, string>,
+  timesChannels: SlackChannel[],
+): void {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetName = config["TIMES_SHEET_NAME"];
+
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+  }
 
   const output: (string | number | Date)[][] = [
     ["channel_id", "channel_name", "creator", "created", "num_members"],
@@ -49,9 +71,5 @@ function fetchTimesChannels(config: Record<string, string>): SlackChannel[] {
   sheet.clear();
   sheet.getRange(1, 1, output.length, output[0].length).setValues(output);
 
-  console.log(
-    `${timesChannels.length}件の times チャンネルを取得しました。新着: ${newChannels.length}件`,
-  );
-
-  return newChannels;
+  console.log(`スプレッドシートを更新しました。${timesChannels.length}件`);
 }
