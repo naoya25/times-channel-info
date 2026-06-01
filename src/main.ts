@@ -1,7 +1,9 @@
-function main(targetChannel: string = TARGET_CHANNEL): void {
+function main(): void {
   const config = fetchConfigs();
   const userCount = fetchSlackUsers(config);
   const { newChannels, allTimesChannels } = fetchTimesChannels(config);
+
+  const targetChannel = config["NEWS_CHANNEL_ID"];
 
   try {
     notifyNewTimesChannels(newChannels, targetChannel, config);
@@ -11,7 +13,7 @@ function main(targetChannel: string = TARGET_CHANNEL): void {
     const sheetUrl = SpreadsheetApp.getActiveSpreadsheet().getUrl();
     console.error("通知に失敗しました: " + errMsg);
     postToSlack(
-      config["NEWS_CHANNEL_ID"],
+      targetChannel,
       `<@${config["OWNER_ID"]}> times チャンネルの通知に失敗しました。\nエラー: ${errMsg}\nシート: ${sheetUrl}`,
     );
     return;
